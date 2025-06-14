@@ -1,74 +1,76 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="🐍 Snake Game", page_icon="🐍")
-st.title("🐍 Game Con Rắn (Đẹp hơn)")
+st.set_page_config(page_title="🐍 Snake Tốc độ + Xuyên tường", page_icon="🐍")
+st.title("🐍 Game Con Rắn (Tăng tốc + Xuyên tường)")
 
 snake_game_html = """
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <style>
     body {
-      margin: 0;
-      background-color: #1e1e1e;
+      background: #121212;
+      color: #00ffcc;
       font-family: 'Segoe UI', sans-serif;
-      color: white;
       text-align: center;
     }
     canvas {
-      background-color: #111;
+      background-color: #000;
       display: block;
-      margin: 0 auto;
+      margin: auto;
       border: 3px solid #00ffcc;
       box-shadow: 0 0 20px #00ffcc;
     }
-    h3 {
-      margin-top: 10px;
-      color: #00ffcc;
-    }
-    #score {
-      font-size: 20px;
-      margin-top: 10px;
-    }
+    h3 { margin-top: 10px; }
+    #score { font-size: 18px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h3>🐍 Dùng các phím mũi tên để điều khiển rắn</h3>
+  <h3>🐍 Điều khiển: phím mũi tên (đi xuyên tường)</h3>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
   <div id="score">Điểm: 0</div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
+
 let snake = [{x: 10, y: 10}];
 let dx = 0;
 let dy = 0;
 let food = {x: 15, y: 15};
 let score = 0;
+let speed = 150;
 
 function drawGame() {
   update();
   draw();
-  if (checkGameOver()) {
+  if (checkCollision()) {
     setTimeout(() => {
-      alert("💀 Game Over! Tổng điểm: " + score);
+      alert("💀 Game Over! Điểm: " + score);
       document.location.reload();
     }, 100);
   } else {
-    setTimeout(drawGame, 120);
+    setTimeout(drawGame, speed);
   }
 }
 
 function update() {
-  const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-  snake.unshift(head);
-  if (head.x === food.x && head.y === food.y) {
+  let headX = snake[0].x + dx;
+  let headY = snake[0].y + dy;
+
+  // Xuyên tường
+  headX = (headX + tileCount) % tileCount;
+  headY = (headY + tileCount) % tileCount;
+
+  const newHead = {x: headX, y: headY};
+  snake.unshift(newHead);
+
+  if (newHead.x === food.x && newHead.y === food.y) {
     score++;
+    speed = Math.max(50, speed - 5); // Tăng tốc
     document.getElementById("score").innerText = "Điểm: " + score;
     food = {
       x: Math.floor(Math.random() * tileCount),
@@ -80,7 +82,7 @@ function update() {
 }
 
 function draw() {
-  ctx.fillStyle = "#111";
+  ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Snake
@@ -90,17 +92,12 @@ function draw() {
   }
 
   // Food
-  ctx.fillStyle = "#ff3c38";
+  ctx.fillStyle = "#ff3333";
   ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 }
 
-function checkGameOver() {
+function checkCollision() {
   const head = snake[0];
-  if (
-    head.x < 0 || head.x >= tileCount ||
-    head.y < 0 || head.y >= tileCount
-  ) return true;
-
   for (let i = 1; i < snake.length; i++) {
     if (head.x === snake[i].x && head.y === snake[i].y) return true;
   }
