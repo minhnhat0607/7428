@@ -1,45 +1,117 @@
 import streamlit as st
-import random
+import streamlit.components.v1 as components
 
-# --- Cấu hình trang ---
-st.set_page_config(page_title="Tiến Lên", page_icon="🃏")
-st.title("🃏 Game Rút Bài – Tiến Lên Miền Nam")
+st.set_page_config(page_title="🐍 Snake Game", page_icon="🐍")
+st.title("🐍 Game Con Rắn")
 
-# --- Khởi tạo bộ bài ---
-suits = ["♠", "♥", "♦", "♣"]
-ranks = ["2", "A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3"]
-deck = [f"{rank}{suit}" for suit in suits for rank in ranks]
+# HTML + JavaScript Snake Game
+snake_game_html = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    text-align: center;
+    background: #111;
+    color: white;
+  }
+  canvas {
+    background: #000;
+    display: block;
+    margin: auto;
+    border: 2px solid white;
+  }
+</style>
+</head>
+<body>
+<h3>🐍 Dùng các phím mũi tên để điều khiển rắn</h3>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-# --- Tải hình ảnh bài ---
-def get_card_url(card):
-    suit_map = {"♠": "S", "♥": "H", "♦": "D", "♣": "C"}
-    rank_map = {"A": "A", "K": "K", "Q": "Q", "J": "J", "10": "T", "9": "9", "8": "8", "7": "7", "6": "6", "5": "5", "4": "4", "3": "3", "2": "2"}
-    rank = "".join([c for c in card if c.isalnum()])
-    suit = card[-1]
-    return f"https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/{rank_map[rank]}{suit_map[suit]}.png"
+const gridSize = 20;
+const tileCount = canvas.width / gridSize;
 
-# --- Trạng thái người chơi ---
-if "drawn_cards" not in st.session_state:
-    st.session_state.drawn_cards = []
+let snake = [{x: 10, y: 10}];
+let dx = 0;
+let dy = 0;
+let food = {x: 15, y: 15};
+let score = 0;
 
-# --- Rút bài ---
-if st.button("🎲 Rút 1 lá bài", key="draw_button"):
-    available_cards = list(set(deck) - set(st.session_state.drawn_cards))
-    if available_cards:
-        drawn = random.choice(available_cards)
-        st.session_state.drawn_cards.append(drawn)
-    else:
-        st.warning("🛑 Bạn đã rút hết tất cả 52 lá bài!")
+function drawGame() {
+  update();
+  draw();
+  if (checkGameOver()) {
+    alert("💀 Game Over! Điểm: " + score);
+    document.location.reload();
+  } else {
+    setTimeout(drawGame, 100);
+  }
+}
 
-# --- Hiển thị các lá đã rút ---
-st.subheader("🃏 Các lá bài đã rút:")
-cols = st.columns(8)
-for i, card in enumerate(st.session_state.drawn_cards):
-    with cols[i % 8]:
-        st.image(get_card_url(card), width=80)
-        st.caption(card)
+function update() {
+  const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    food = {
+      x: Math.floor(Math.random() * tileCount),
+      y: Math.floor(Math.random() * tileCount)
+    };
+  } else {
+    snake.pop();
+  }
+}
 
-# --- Nút chơi lại ---
-if st.button("🔄 Chơi lại", key="reset_button"):
-    st.session_state.drawn_cards = []
-    st.experimental_rerun()
+function draw() {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "lime";
+  snake.forEach(part => {
+    ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+  });
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+}
+
+function checkGameOver() {
+  const head = snake[0];
+  if (
+    head.x < 0 || head.x >= tileCount ||
+    head.y < 0 || head.y >= tileCount
+  ) return true;
+
+  for (let i = 1; i < snake.length; i++) {
+    if (head.x === snake[i].x && head.y === snake[i].y) return true;
+  }
+  return false;
+}
+
+document.addEventListener("keydown", e => {
+  switch (e.key) {
+    case "ArrowUp":
+      if (dy === 0) { dx = 0; dy = -1; }
+      break;
+    case "ArrowDown":
+      if (dy === 0) { dx = 0; dy = 1; }
+      break;
+    case "ArrowLeft":
+      if (dx === 0) { dx = -1; dy = 0; }
+      break;
+    case "ArrowRight":
+      if (dx === 0) { dx = 1; dy = 0; }
+      break;
+  }
+});
+
+drawGame();
+</script>
+</body>
+</html>
+"""
+
+# Render HTML game in Streamlit
+components.html(snake_game_html, height=500)
