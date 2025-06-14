@@ -1,81 +1,45 @@
 import streamlit as st
 import random
 
-# Cấu hình tiêu đề trang
-st.set_page_config(page_title="Cờ Cá Ngựa HTML", page_icon="🐴")
-st.title("🐴 Cờ Cá Ngựa Mini – Giao diện HTML")
+# --- Cấu hình trang ---
+st.set_page_config(page_title="Tiến Lên", page_icon="🃏")
+st.title("🃏 Game Rút Bài – Tiến Lên Miền Nam")
 
-# Khởi tạo trạng thái nếu chưa có
-if "position" not in st.session_state:
-    st.session_state.position = 0
-if "log" not in st.session_state:
-    st.session_state.log = []
+# --- Khởi tạo bộ bài ---
+suits = ["♠", "♥", "♦", "♣"]
+ranks = ["2", "A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3"]
+deck = [f"{rank}{suit}" for suit in suits for rank in ranks]
 
-# Nút gieo xúc xắc
-if st.button("🎲 Gieo xúc xắc", key="roll_button"):
-    dice = random.randint(1, 6)
-    new_pos = st.session_state.position + dice
-    if new_pos <= 56:
-        st.session_state.position = new_pos
-        st.success(f"Gieo được {dice}, đến ô {new_pos}")
+# --- Tải hình ảnh bài ---
+def get_card_url(card):
+    suit_map = {"♠": "S", "♥": "H", "♦": "D", "♣": "C"}
+    rank_map = {"A": "A", "K": "K", "Q": "Q", "J": "J", "10": "T", "9": "9", "8": "8", "7": "7", "6": "6", "5": "5", "4": "4", "3": "3", "2": "2"}
+    rank = "".join([c for c in card if c.isalnum()])
+    suit = card[-1]
+    return f"https://raw.githubusercontent.com/hayeah/playing-cards-assets/master/png/{rank_map[rank]}{suit_map[suit]}.png"
+
+# --- Trạng thái người chơi ---
+if "drawn_cards" not in st.session_state:
+    st.session_state.drawn_cards = []
+
+# --- Rút bài ---
+if st.button("🎲 Rút 1 lá bài", key="draw_button"):
+    available_cards = list(set(deck) - set(st.session_state.drawn_cards))
+    if available_cards:
+        drawn = random.choice(available_cards)
+        st.session_state.drawn_cards.append(drawn)
     else:
-        st.warning(f"Gieo {dice}, vượt quá ô 56 nên không di chuyển.")
-    st.session_state.log.append(f"🎲 Gieo {dice} → Vị trí: {st.session_state.position}")
+        st.warning("🛑 Bạn đã rút hết tất cả 52 lá bài!")
 
-# Giao diện CSS cho bàn cờ
-st.markdown("""
-    <style>
-    .board-container {
-        display: flex;
-        flex-wrap: wrap;
-        width: 360px;
-    }
-    .cell {
-        width: 40px;
-        height: 40px;
-        border: 1px solid #ccc;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        margin: 2px;
-        font-size: 15px;
-    }
-    .cell.normal {
-        background-color: #f0f0f0;
-    }
-    .cell.current {
-        background-color: #ffe066;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# --- Hiển thị các lá đã rút ---
+st.subheader("🃏 Các lá bài đã rút:")
+cols = st.columns(8)
+for i, card in enumerate(st.session_state.drawn_cards):
+    with cols[i % 8]:
+        st.image(get_card_url(card), width=80)
+        st.caption(card)
 
-# Hàm vẽ bàn cờ
-def draw_board(position):
-    html = '<div class="board-container">'
-    for i in range(1, 57):
-        if i == position:
-            html += '<div class="cell current">🐴</div>'
-        else:
-            html += f'<div class="cell normal">{i}</div>'
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
-
-# Hiển thị bàn cờ
-draw_board(st.session_state.position)
-
-# Nếu đến ô 56 thì hiển thị chúc mừng
-if st.session_state.position == 56:
-    st.success("🎉 Bạn đã về đích! Chúc mừng!")
-    st.balloons()
-
-# Hiển thị lịch sử lượt chơi
-with st.expander("📜 Lịch sử lượt chơi"):
-    for log in reversed(st.session_state.log):
-        st.markdown(f"- {log}")
-
-# Nút reset game (đã thêm key để tránh lỗi trùng ID)
+# --- Nút chơi lại ---
 if st.button("🔄 Chơi lại", key="reset_button"):
-    st.session_state.position = 0
-    st.session_state.log = []
-    st.info("🧹 Game đã được đặt lại.")
+    st.session_state.drawn_cards = []
+    st.experimental_rerun()
