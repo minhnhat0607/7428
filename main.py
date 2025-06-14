@@ -18,118 +18,57 @@
   </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="480" height="640"></canvas>
+  <canvas id="gameCanvas" width="480" height="640"></canvas>
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-const ship = { x: 220, y: 580, width: 40, height: 20, color: "#0f0" };
-const bullets = [];
-const enemies = [];
-let score = 0;
-let gameOver = false;
+    const player = {
+      x: canvas.width / 2 - 15,
+      y: canvas.height - 50,
+      width: 30,
+      height: 30,
+      speed: 5,
+      color: "lime",
+      bullets: []
+    };
 
-// Create enemies
-function spawnEnemy() {
-  const x = Math.random() * (canvas.width - 30);
-  enemies.push({ x, y: 0, width: 30, height: 20, color: "#f00", speed: 2 });
-}
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
 
-// Draw ship
-function drawShip() {
-  ctx.fillStyle = ship.color;
-  ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
-}
+    function drawBullets() {
+      ctx.fillStyle = "red";
+      player.bullets.forEach((bullet, i) => {
+        bullet.y -= 7;
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        if (bullet.y < 0) player.bullets.splice(i, 1);
+      });
+    }
 
-// Draw bullets
-function drawBullets() {
-  ctx.fillStyle = "#0ff";
-  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
-}
-
-// Draw enemies
-function drawEnemies() {
-  enemies.forEach(e => {
-    ctx.fillStyle = e.color;
-    ctx.fillRect(e.x, e.y, e.width, e.height);
-  });
-}
-
-// Collision detection
-function isColliding(a, b) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
-}
-
-// Game loop
-function update() {
-  if (gameOver) return;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawShip();
-
-  // Move and draw bullets
-  bullets.forEach(b => b.y -= 5);
-  bullets.filter(b => b.y > 0);
-  drawBullets();
-
-  // Move enemies
-  enemies.forEach(e => e.y += e.speed);
-  drawEnemies();
-
-  // Check bullet-enemy collision
-  bullets.forEach((b, bi) => {
-    enemies.forEach((e, ei) => {
-      if (isColliding(b, e)) {
-        bullets.splice(bi, 1);
-        enemies.splice(ei, 1);
-        score++;
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && player.x > 0) player.x -= player.speed;
+      if (e.key === "ArrowRight" && player.x + player.width < canvas.width) player.x += player.speed;
+      if (e.key === " ") {
+        player.bullets.push({
+          x: player.x + player.width / 2 - 2,
+          y: player.y,
+          width: 4,
+          height: 10
+        });
       }
     });
-  });
 
-  // Check enemy-ship collision
-  enemies.forEach(e => {
-    if (isColliding(e, ship) || e.y > canvas.height) {
-      gameOver = true;
-      alert("💥 Game Over! Điểm: " + score);
-      location.reload();
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawBullets();
+      requestAnimationFrame(gameLoop);
     }
-  });
 
-  // Show score
-  ctx.fillStyle = "#fff";
-  ctx.font = "16px Arial";
-  ctx.fillText("Điểm: " + score, 10, 20);
-
-  requestAnimationFrame(update);
-}
-
-// Controls
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") ship.x -= 20;
-  if (e.key === "ArrowRight") ship.x += 20;
-  if (e.key === " ") {
-    bullets.push({
-      x: ship.x + ship.width / 2 - 2,
-      y: ship.y,
-      width: 4,
-      height: 10
-    });
-  }
-});
-
-// Enemy spawner
-setInterval(spawnEnemy, 1000);
-
-// Start game
-update();
-</script>
+    gameLoop();
+  </script>
 </body>
 </html>
