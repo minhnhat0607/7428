@@ -1,116 +1,116 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PhoneStore - Cửa hàng điện thoại</title>
+  <meta charset="UTF-8">
+  <title>Game Ghép Mô Hình</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f2f2f2;
-    }
-
-    header {
-      background-color: #333;
-      color: white;
-      padding: 20px 0;
+      font-family: sans-serif;
       text-align: center;
+      background: #f0f0f0;
     }
 
-    nav {
-      background-color: #444;
+    h1 {
+      margin-top: 20px;
+      color: #333;
+    }
+
+    #puzzle {
+      width: 300px;
+      height: 300px;
+      margin: 20px auto;
       display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 10px;
+      flex-wrap: wrap;
+      border: 4px solid #333;
     }
 
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
+    .tile {
+      width: 100px;
+      height: 100px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Iconic_image_of_the_Earth_by_Apollo_17.jpg/600px-Iconic_image_of_the_Earth_by_Apollo_17.jpg');
+      background-size: 300px 300px;
     }
 
-    .container {
-      padding: 20px;
+    .tile.dragging {
+      opacity: 0.5;
     }
 
-    .products {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    .product {
-      background-color: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .product img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    .product h3 {
-      margin: 10px 0 5px;
-    }
-
-    .product p {
-      margin: 0;
-      color: green;
-      font-weight: bold;
-    }
-
-    footer {
-      text-align: center;
-      background-color: #333;
-      color: white;
-      padding: 15px;
-      margin-top: 30px;
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📱 PhoneStore</h1>
-    <p>Chuyên cung cấp điện thoại chính hãng</p>
-  </header>
 
-  <nav>
-    <a href="#">Trang chủ</a>
-    <a href="#">Sản phẩm</a>
-    <a href="#">Liên hệ</a>
-    <a href="#">Giỏ hàng</a>
-  </nav>
+<h1>🧩 Game Ghép Mô Hình</h1>
+<div id="puzzle"></div>
+<button onclick="shuffle()">🔄 Trộn Lại</button>
 
-  <div class="container">
-    <h2>Sản phẩm nổi bật</h2>
-    <div class="products">
-      <div class="product">
-        <img src="https://via.placeholder.com/200x250" alt="iPhone 15" />
-        <h3>iPhone 15 Pro Max</h3>
-        <p>28.990.000đ</p>
-      </div>
-      <div class="product">
-        <img src="https://via.placeholder.com/200x250" alt="Samsung S24" />
-        <h3>Samsung Galaxy S24 Ultra</h3>
-        <p>25.990.000đ</p>
-      </div>
-      <div class="product">
-        <img src="https://via.placeholder.com/200x250" alt="Xiaomi 14" />
-        <h3>Xiaomi 14</h3>
-        <p>18.990.000đ</p>
-      </div>
-      <!-- Thêm sản phẩm khác -->
-    </div>
-  </div>
+<script>
+  const puzzle = document.getElementById('puzzle');
+  const positions = [];
 
-  <footer>
-    &copy; 2025 PhoneStore. Mọi quyền được bảo lưu.
-  </footer>
+  function createTiles() {
+    for (let i = 0; i < 9; i++) {
+      const tile = document.createElement('div');
+      tile.classList.add('tile');
+      tile.draggable = true;
+      const x = (i % 3) * -100;
+      const y = Math.floor(i / 3) * -100;
+      tile.style.backgroundPosition = `${x}px ${y}px`;
+      tile.dataset.index = i;
+      positions.push(i);
+      puzzle.appendChild(tile);
+    }
+  }
+
+  function shuffle() {
+    const tiles = [...puzzle.children];
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i].style.backgroundPosition, tiles[j].style.backgroundPosition] = [tiles[j].style.backgroundPosition, tiles[i].style.backgroundPosition];
+      [tiles[i].dataset.index, tiles[j].dataset.index] = [tiles[j].dataset.index, tiles[i].dataset.index];
+    }
+  }
+
+  let draggedTile;
+
+  puzzle.addEventListener('dragstart', (e) => {
+    if (e.target.classList.contains('tile')) {
+      draggedTile = e.target;
+      draggedTile.classList.add('dragging');
+    }
+  });
+
+  puzzle.addEventListener('dragend', () => {
+    if (draggedTile) {
+      draggedTile.classList.remove('dragging');
+    }
+  });
+
+  puzzle.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  puzzle.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.target.classList.contains('tile') && draggedTile !== e.target) {
+      const tempBg = draggedTile.style.backgroundPosition;
+      const tempIndex = draggedTile.dataset.index;
+      draggedTile.style.backgroundPosition = e.target.style.backgroundPosition;
+      draggedTile.dataset.index = e.target.dataset.index;
+      e.target.style.backgroundPosition = tempBg;
+      e.target.dataset.index = tempIndex;
+    }
+  });
+
+  createTiles();
+  shuffle();
+</script>
+
 </body>
 </html>
