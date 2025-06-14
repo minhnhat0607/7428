@@ -1,118 +1,135 @@
-import streamlit as st
-import streamlit.components.v1 as components
-
-st.set_page_config(page_title="🐍 Snake Tăng Tốc", page_icon="🐍")
-st.title("🐍 Game Con Rắn (Tăng tốc mỗi lần ăn)")
-
-snake_game_html = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <title>🚀 Game Bắn Súng</title>
   <style>
     body {
-      background: #121212;
-      color: #00ffcc;
-      font-family: 'Segoe UI', sans-serif;
-      text-align: center;
+      background: #000;
+      margin: 0;
+      overflow: hidden;
     }
     canvas {
-      background-color: #000;
       display: block;
       margin: auto;
-      border: 3px solid #00ffcc;
-      box-shadow: 0 0 20px #00ffcc;
+      background-color: #111;
+      border: 2px solid #0f0;
     }
-    h3 { margin-top: 10px; }
-    #score { font-size: 18px; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <h3>🐍 Điều khiển: phím mũi tên (rắn xuyên tường)</h3>
-  <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <div id="score">Điểm: 0 | Tốc độ: 150ms</div>
+<canvas id="gameCanvas" width="480" height="640"></canvas>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-const gridSize = 20;
-const tileCount = canvas.width / gridSize;
 
-let snake = [{x: 10, y: 10}];
-let dx = 0;
-let dy = 0;
-let food = {x: 15, y: 15};
+const ship = { x: 220, y: 580, width: 40, height: 20, color: "#0f0" };
+const bullets = [];
+const enemies = [];
 let score = 0;
-let speed = 150; // tốc độ ban đầu
-let timer;
+let gameOver = false;
 
-function drawGame() {
-  update();
-  draw();
-  if (checkCollision()) {
-    clearTimeout(timer);
-    setTimeout(() => {
-      alert("💀 Game Over! Điểm: " + score);
-      document.location.reload();
-    }, 100);
-  } else {
-    timer = setTimeout(drawGame, speed);
-  }
+// Create enemies
+function spawnEnemy() {
+  const x = Math.random() * (canvas.width - 30);
+  enemies.push({ x, y: 0, width: 30, height: 20, color: "#f00", speed: 2 });
 }
 
+// Draw ship
+function drawShip() {
+  ctx.fillStyle = ship.color;
+  ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
+}
+
+// Draw bullets
+function drawBullets() {
+  ctx.fillStyle = "#0ff";
+  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+}
+
+// Draw enemies
+function drawEnemies() {
+  enemies.forEach(e => {
+    ctx.fillStyle = e.color;
+    ctx.fillRect(e.x, e.y, e.width, e.height);
+  });
+}
+
+// Collision detection
+function isColliding(a, b) {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
+
+// Game loop
 function update() {
-  let headX = (snake[0].x + dx + tileCount) % tileCount;
-  let headY = (snake[0].y + dy + tileCount) % tileCount;
-  const newHead = {x: headX, y: headY};
-  snake.unshift(newHead);
+  if (gameOver) return;
 
-  if (newHead.x === food.x && newHead.y === food.y) {
-    score++;
-    speed = Math.max(30, speed - 10); // tăng tốc mỗi lần ăn
-    food = {
-      x: Math.floor(Math.random() * tileCount),
-      y: Math.floor(Math.random() * tileCount)
-    };
-  } else {
-    snake.pop();
-  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  document.getElementById("score").innerText = "Điểm: " + score + " | Tốc độ: " + speed + "ms";
+  drawShip();
+
+  // Move and draw bullets
+  bullets.forEach(b => b.y -= 5);
+  bullets.filter(b => b.y > 0);
+  drawBullets();
+
+  // Move enemies
+  enemies.forEach(e => e.y += e.speed);
+  drawEnemies();
+
+  // Check bullet-enemy collision
+  bullets.forEach((b, bi) => {
+    enemies.forEach((e, ei) => {
+      if (isColliding(b, e)) {
+        bullets.splice(bi, 1);
+        enemies.splice(ei, 1);
+        score++;
+      }
+    });
+  });
+
+  // Check enemy-ship collision
+  enemies.forEach(e => {
+    if (isColliding(e, ship) || e.y > canvas.height) {
+      gameOver = true;
+      alert("💥 Game Over! Điểm: " + score);
+      location.reload();
+    }
+  });
+
+  // Show score
+  ctx.fillStyle = "#fff";
+  ctx.font = "16px Arial";
+  ctx.fillText("Điểm: " + score, 10, 20);
+
+  requestAnimationFrame(update);
 }
 
-function draw() {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < snake.length; i++) {
-    ctx.fillStyle = i === 0 ? "#00ffcc" : "#33ff99";
-    ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
-  }
-
-  ctx.fillStyle = "#ff3333";
-  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
-}
-
-function checkCollision() {
-  const head = snake[0];
-  for (let i = 1; i < snake.length; i++) {
-    if (head.x === snake[i].x && head.y === snake[i].y) return true;
-  }
-  return false;
-}
-
-document.addEventListener("keydown", e => {
-  switch (e.key) {
-    case "ArrowUp": if (dy === 0) { dx = 0; dy = -1; } break;
-    case "ArrowDown": if (dy === 0) { dx = 0; dy = 1; } break;
-    case "ArrowLeft": if (dx === 0) { dx = -1; dy = 0; } break;
-    case "ArrowRight": if (dx === 0) { dx = 1; dy = 0; } break;
+// Controls
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") ship.x -= 20;
+  if (e.key === "ArrowRight") ship.x += 20;
+  if (e.key === " ") {
+    bullets.push({
+      x: ship.x + ship.width / 2 - 2,
+      y: ship.y,
+      width: 4,
+      height: 10
+    });
   }
 });
 
-drawGame();
+// Enemy spawner
+setInterval(spawnEnemy, 1000);
+
+// Start game
+update();
 </script>
 </body>
 </html>
-"""
-
-components.html(snake_game_html, height=520)
