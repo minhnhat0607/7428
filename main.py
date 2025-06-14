@@ -1,8 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="🐍 Snake Tốc độ + Xuyên tường", page_icon="🐍")
-st.title("🐍 Game Con Rắn (Tăng tốc + Xuyên tường)")
+st.set_page_config(page_title="🐍 Snake Tăng Tốc", page_icon="🐍")
+st.title("🐍 Game Con Rắn (Tăng tốc mỗi lần ăn)")
 
 snake_game_html = """
 <!DOCTYPE html>
@@ -27,9 +27,9 @@ snake_game_html = """
   </style>
 </head>
 <body>
-  <h3>🐍 Điều khiển: phím mũi tên (đi xuyên tường)</h3>
+  <h3>🐍 Điều khiển: phím mũi tên (rắn xuyên tường)</h3>
   <canvas id="gameCanvas" width="400" height="400"></canvas>
-  <div id="score">Điểm: 0</div>
+  <div id="score">Điểm: 0 | Tốc độ: 150ms</div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
@@ -42,36 +42,32 @@ let dx = 0;
 let dy = 0;
 let food = {x: 15, y: 15};
 let score = 0;
-let speed = 150;
+let speed = 150; // tốc độ ban đầu
+let timer;
 
 function drawGame() {
   update();
   draw();
   if (checkCollision()) {
+    clearTimeout(timer);
     setTimeout(() => {
       alert("💀 Game Over! Điểm: " + score);
       document.location.reload();
     }, 100);
   } else {
-    setTimeout(drawGame, speed);
+    timer = setTimeout(drawGame, speed);
   }
 }
 
 function update() {
-  let headX = snake[0].x + dx;
-  let headY = snake[0].y + dy;
-
-  // Xuyên tường
-  headX = (headX + tileCount) % tileCount;
-  headY = (headY + tileCount) % tileCount;
-
+  let headX = (snake[0].x + dx + tileCount) % tileCount;
+  let headY = (snake[0].y + dy + tileCount) % tileCount;
   const newHead = {x: headX, y: headY};
   snake.unshift(newHead);
 
   if (newHead.x === food.x && newHead.y === food.y) {
     score++;
-    speed = Math.max(50, speed - 5); // Tăng tốc
-    document.getElementById("score").innerText = "Điểm: " + score;
+    speed = Math.max(30, speed - 10); // tăng tốc mỗi lần ăn
     food = {
       x: Math.floor(Math.random() * tileCount),
       y: Math.floor(Math.random() * tileCount)
@@ -79,19 +75,19 @@ function update() {
   } else {
     snake.pop();
   }
+
+  document.getElementById("score").innerText = "Điểm: " + score + " | Tốc độ: " + speed + "ms";
 }
 
 function draw() {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Snake
   for (let i = 0; i < snake.length; i++) {
     ctx.fillStyle = i === 0 ? "#00ffcc" : "#33ff99";
     ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 2, gridSize - 2);
   }
 
-  // Food
   ctx.fillStyle = "#ff3333";
   ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
 }
