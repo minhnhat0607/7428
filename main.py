@@ -5,84 +5,77 @@ import random
 st.set_page_config(page_title="Cờ Cá Ngựa HTML", page_icon="🐴")
 st.title("🐴 Cờ Cá Ngựa Mini – Giao diện HTML")
 
-# Khởi tạo trạng thái
+# Khởi tạo trạng thái nếu chưa có
 if "position" not in st.session_state:
     st.session_state.position = 0
 if "log" not in st.session_state:
     st.session_state.log = []
 
-# Gieo xúc xắc
-if st.button("🎲 Gieo xúc xắc"):
+# Nút gieo xúc xắc
+if st.button("🎲 Gieo xúc xắc", key="roll_button"):
     dice = random.randint(1, 6)
     new_pos = st.session_state.position + dice
     if new_pos <= 56:
         st.session_state.position = new_pos
-        st.success(f"Gieo được {dice}, tiến đến ô {new_pos}")
+        st.success(f"Gieo được {dice}, đến ô {new_pos}")
     else:
-        st.warning(f"Gieo được {dice}, nhưng vượt quá ô 56.")
+        st.warning(f"Gieo {dice}, vượt quá ô 56 nên không di chuyển.")
     st.session_state.log.append(f"🎲 Gieo {dice} → Vị trí: {st.session_state.position}")
 
-# Vẽ bàn cờ bằng HTML
-def draw_html_board(position):
-    st.markdown(
-        """
-        <style>
-        .board-container {
-            display: flex;
-            flex-wrap: wrap;
-            width: 360px;
-        }
-        .cell {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 2px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        .cell.normal {
-            background-color: #f1f1f1;
-        }
-        .cell.current {
-            background-color: #ffe066;
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
+# Giao diện CSS cho bàn cờ
+st.markdown("""
+    <style>
+    .board-container {
+        display: flex;
+        flex-wrap: wrap;
+        width: 360px;
+    }
+    .cell {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ccc;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        margin: 2px;
+        font-size: 15px;
+    }
+    .cell.normal {
+        background-color: #f0f0f0;
+    }
+    .cell.current {
+        background-color: #ffe066;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    html_board = '<div class="board-container">'
+# Hàm vẽ bàn cờ
+def draw_board(position):
+    html = '<div class="board-container">'
     for i in range(1, 57):
         if i == position:
-            html_board += f"<div class='cell current'>🐴</div>"
+            html += '<div class="cell current">🐴</div>'
         else:
-            html_board += f"<div class='cell normal'>{i}</div>"
-    html_board += '</div>'
-    st.markdown(html_board, unsafe_allow_html=True)
+            html += f'<div class="cell normal">{i}</div>'
+    html += '</div>'
+    st.markdown(html, unsafe_allow_html=True)
 
 # Hiển thị bàn cờ
-draw_html_board(st.session_state.position)
+draw_board(st.session_state.position)
 
-# Thông báo chiến thắng
+# Nếu đến ô 56 thì hiển thị chúc mừng
 if st.session_state.position == 56:
+    st.success("🎉 Bạn đã về đích! Chúc mừng!")
     st.balloons()
-    st.success("🎉 Chúc mừng! Bạn đã về đích!")
 
-# Hiển thị lịch sử
+# Hiển thị lịch sử lượt chơi
 with st.expander("📜 Lịch sử lượt chơi"):
     for log in reversed(st.session_state.log):
-        st.markdown(log)
+        st.markdown(f"- {log}")
 
-# Reset trò chơi
-if st.button("🔄 Chơi lại"):
+# Nút reset game (đã thêm key để tránh lỗi trùng ID)
+if st.button("🔄 Chơi lại", key="reset_button"):
     st.session_state.position = 0
     st.session_state.log = []
-    st.info("Đã đặt lại trò chơi.")
-
-# Nút reset
-if st.button("🔄 Chơi lại"):
-    st.session_state.position = 0
-    st.session_state.log = []
-    st.info("Đã đặt lại trò chơi.")
+    st.info("🧹 Game đã được đặt lại.")
