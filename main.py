@@ -1,74 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>🚀 Game Bắn Súng</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoneStore - Cửa hàng điện thoại</title>
   <style>
     body {
-      background: #000;
+      font-family: Arial, sans-serif;
       margin: 0;
-      overflow: hidden;
+      padding: 0;
+      background: #f4f4f4;
     }
-    canvas {
+    header {
+      background: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #444;
+    }
+    nav a {
+      color: #fff;
+      padding: 14px 20px;
       display: block;
+      text-decoration: none;
+    }
+    nav a:hover {
+      background: #222;
+    }
+    .container {
+      max-width: 1000px;
       margin: auto;
-      background-color: #111;
-      border: 2px solid #0f0;
+      padding: 20px;
+    }
+    .product {
+      display: inline-block;
+      width: 30%;
+      margin: 1%;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .product img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .product h3, .product p {
+      margin: 10px 0;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #333;
+      color: white;
+    }
+    form input, form button {
+      padding: 10px;
+      margin: 5px;
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="480" height="640"></canvas>
+  <header>
+    <h1>📱 PhoneStore</h1>
+    <p>Uy tín - Chất lượng - Hậu mãi tốt</p>
+  </header>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+  <nav>
+    <a href="#products">Sản phẩm</a>
+    <a href="#about">Giới thiệu</a>
+    <a href="#contact">Liên hệ</a>
+  </nav>
 
-    const player = {
-      x: canvas.width / 2 - 15,
-      y: canvas.height - 50,
-      width: 30,
-      height: 30,
-      speed: 5,
-      color: "lime",
-      bullets: []
-    };
+  <div class="container" id="products">
+    <h2>Sản phẩm nổi bật</h2>
+    <div class="product">
+      <img src="https://via.placeholder.com/300x200?text=iPhone+15" alt="iPhone">
+      <h3>iPhone 15 Pro Max</h3>
+      <p>Giá: 32.000.000đ</p>
+      <button>Mua ngay</button>
+    </div>
+    <div class="product">
+      <img src="https://via.placeholder.com/300x200?text=Samsung+S24" alt="Samsung">
+      <h3>Samsung Galaxy S24 Ultra</h3>
+      <p>Giá: 28.000.000đ</p>
+      <button>Mua ngay</button>
+    </div>
+    <div class="product">
+      <img src="https://via.placeholder.com/300x200?text=Xiaomi+14" alt="Xiaomi">
+      <h3>Xiaomi 14 Pro</h3>
+      <p>Giá: 20.000.000đ</p>
+      <button>Mua ngay</button>
+    </div>
+  </div>
 
-    function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
+  <div class="container" id="about">
+    <h2>Về PhoneStore</h2>
+    <p>Chúng tôi cung cấp các sản phẩm điện thoại chính hãng từ Apple, Samsung, Xiaomi,... với giá tốt nhất, bảo hành chính hãng và giao hàng nhanh chóng.</p>
+  </div>
 
-    function drawBullets() {
-      ctx.fillStyle = "red";
-      player.bullets.forEach((bullet, i) => {
-        bullet.y -= 7;
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
-        if (bullet.y < 0) player.bullets.splice(i, 1);
-      });
-    }
+  <div class="container" id="contact">
+    <h2>Liên hệ</h2>
+    <form>
+      <input type="text" placeholder="Họ và tên" required><br>
+      <input type="email" placeholder="Email" required><br>
+      <input type="text" placeholder="Tin nhắn..." required><br>
+      <button type="submit">Gửi</button>
+    </form>
+  </div>
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft" && player.x > 0) player.x -= player.speed;
-      if (e.key === "ArrowRight" && player.x + player.width < canvas.width) player.x += player.speed;
-      if (e.key === " ") {
-        player.bullets.push({
-          x: player.x + player.width / 2 - 2,
-          y: player.y,
-          width: 4,
-          height: 10
-        });
-      }
-    });
-
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlayer();
-      drawBullets();
-      requestAnimationFrame(gameLoop);
-    }
-
-    gameLoop();
-  </script>
+  <footer>
+    &copy; 2025 PhoneStore. All rights reserved.
+  </footer>
 </body>
 </html>
